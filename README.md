@@ -8,6 +8,8 @@
 
 ## 📌 Project Overview
 In the age of high-frequency social media and e-commerce, businesses cannot afford to wait for daily batch jobs to understand customer sentiment. This project implements a **Real-Time Data Engineering Pipeline** that ingests, processes, and visualizes simulated user reviews instantly.
+## 🎥 Demo
+[https://drive.google.com/file/d/1M3-WkyacVNCoK-_PhCQFo8FX8yk7Xyqp/view?usp=sharing]
 
 **Goal:** Transform raw, unstructured text streams into actionable business intelligence with sub-second latency.
 
