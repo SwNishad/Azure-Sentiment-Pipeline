@@ -20,18 +20,9 @@ In the age of high-frequency social media and e-commerce, businesses cannot affo
 ---
 
 ## 🏗 Architecture
-The pipeline follows a modern **Medallion Architecture** (Bronze/Silver layers) optimized for streaming data.
+<img width="614" height="1019" alt="image" src="https://github.com/user-attachments/assets/93cf8e49-a73e-4568-9229-c8fb9f24b642" />
 
-```mermaid
-graph LR
-    A[Python Producer] -->|JSON Stream| B(Azure Event Hubs)
-    B -->|Kafka Protocol| C{Azure Databricks}
-    subgraph Spark Cluster
-    C -->|Extract| D[Read Stream]
-    D -->|Transform| E[NLP Analysis]
-    E -->|Load| F[(Delta Lake Table)]
-    end
-    F -->|DirectQuery| G[Power BI Dashboard]
+
 
 
 ### Data Flow
@@ -45,13 +36,13 @@ graph LR
 
 | Component | Technology | Description |
 | :--- | :--- | :--- |
-| **Language** | Python 3.9, PySpark | Core logic and scripting. |
-| **Cloud Provider** | Microsoft Azure | Infrastructure hosting. |
-| **Ingestion** | Azure Event Hubs | Kafka-compatible event streaming platform. |
-| **Processing** | Apache Spark 3.5.0 | Distributed data processing engine on Azure Databricks. |
-| **NLP** | TextBlob | Library for processing textual data. |
-| **Storage** | Delta Lake | Open-source storage layer that brings reliability to data lakes. |
-| **Visualization** | Power BI | Business analytics service for interactive visualizations. |
+| **Language** | Python 3.9, PySpark | Core logic and scripting |
+| **Cloud Provider** | Microsoft Azure | Infrastructure hosting |
+| **Ingestion** | Azure Event Hubs | Kafka-compatible event streaming platform |
+| **Processing** | Apache Spark 3.5.0 | Distributed data processing engine on Azure Databricks |
+| **NLP** | TextBlob | Library for processing textual data |
+| **Storage** | Delta Lake | Open-source storage layer that brings reliability to data lakes |
+| **Visualization** | Power BI | Business analytics service for interactive visualizations |
 
 ## 📋 Prerequisites
 Before running this project, ensure you have:
@@ -60,83 +51,148 @@ Before running this project, ensure you have:
 * **Python 3.x** installed locally.
 * **Azure Databricks Workspace** (Standard Tier).
 
-## ⚙ Installation & Setup
+## ⚙️ Installation & Setup
 
-### 1. Clone the Repository
+### 1️⃣ Clone the Repository
+
 ```bash
-git clone [https://github.com/YOUR_USERNAME/Azure-Sentiment-Pipeline.git](https://github.com/YOUR_USERNAME/Azure-Sentiment-Pipeline.git)
+git clone https://github.com/YOUR_USERNAME/Azure-Sentiment-Pipeline.git
 cd Azure-Sentiment-Pipeline
+```
 
+---
 
-###2. Install Dependencies
+### 2️⃣ Install Dependencies
+
+```bash
 pip install -r requirements.txt
-3. Azure Resource Configuration
-Event Hubs: Create a Namespace (Standard Tier) and an Event Hub named user_reviews.
+```
 
-Databricks: Deploy a workspace in a supported region (e.g., Southeast Asia or East US).
+---
 
-Cluster: Create a Compute Cluster with Runtime 14.3 LTS (Scala 2.12, Spark 3.5.0).
+### 3️⃣ Azure Resource Configuration
 
-4. Configure the Producer
-Open producer.py and update the connection string:
+#### 🔹 Event Hubs
+- Create an **Event Hubs Namespace** (Standard Tier)
+- Create an Event Hub named:
+  ```text
+  user_reviews
+  ```
 
-Python
+#### 🔹 Azure Databricks
+- Deploy a Databricks workspace in a supported region:
+  - **Southeast Asia** or **East US** (recommended for student subscriptions)
 
+#### 🔹 Databricks Cluster
+- Runtime: **14.3 LTS**
+- Spark Version: **3.5.0**
+- Scala: **2.12**
+
+---
+
+### 4️⃣ Configure the Producer
+
+Open `producer.py` and update the Event Hub connection details:
+
+```python
 # producer.py
 CONNECTION_STR = "Endpoint=sb://<YOUR_NAMESPACE>.servicebus.windows.net/;SharedAccessKeyName=..."
 EVENT_HUB_NAME = "user_reviews"
-5. Deploy Spark Job
-Import spark_processor_cloud.py into your Databricks Workspace.
+```
 
-Install the textblob library on your cluster (%pip install textblob).
+---
 
-Add your Event Hub connection string to the notebook configuration.
+### 5️⃣ Deploy the Spark Job
 
-🚀 Usage Guide
-Step 1: Start the Data Stream
-Run the producer script locally to start generating mock data:
+1. Import `spark_processor_cloud.py` into your **Databricks Workspace**
+2. Install required library on the cluster:
 
-Bash
+```python
+%pip install textblob
+```
 
+3. Add the Event Hub connection string to the Spark configuration inside the notebook
+
+---
+
+## 🚀 Usage Guide
+
+### ▶️ Step 1: Start the Data Stream
+
+Run the producer locally to generate mock user reviews:
+
+```bash
 python producer.py
-Output: [2025-12-16 10:00:01] Sent: {'user_id': 45, 'review': 'Great product!', ...}
+```
 
-Step 2: Run the Cloud Processor
-Execute the Databricks notebook. It will initialize the stream and begin populating the sentiment_live_data Delta table.
+**Sample Output:**
+```text
+[2025-12-16 10:00:01] Sent: {'user_id': 45, 'review': 'Great product!', ...}
+```
 
-Step 3: Monitor in Power BI
-Open Power BI Desktop.
+---
 
-Select Get Data > Azure Databricks.
+### ▶️ Step 2: Run the Cloud Processor
 
-Connect using DirectQuery mode.
+- Execute the Databricks notebook
+- Spark initializes a streaming job
+- Processed data is written into:
 
-Select the sentiment_live_data table.
+```text
+sentiment_live_data (Delta Table)
+```
 
-Click Refresh to see the latest sentiment scores updating live.
+---
 
-🧠 Key Engineering Challenges
-1. Region Quota Limitations
-Problem: The Azure Student subscription had a 0-core quota for VM types in the UAE North region, preventing cluster creation.
+### ▶️ Step 3: Monitor in Power BI
 
-Solution: Migrated infrastructure to the Southeast Asia region, where Standard_DS3_v2 quotas were available for student tiers.
+1. Open **Power BI Desktop**
+2. Select **Get Data → Azure Databricks**
+3. Connect using **DirectQuery** mode
+4. Select the `sentiment_live_data` table
+5. Click **Refresh** to see live sentiment updates
 
-2. Kafka/Spark Dependency Conflicts
-Problem: Databricks uses a shaded version of Kafka libraries. Standard org.apache.kafka login modules caused ClassNotFoundException.
+---
 
-Solution: Utilized the kafkashaded namespace in the Spark configuration:
+## 🧠 Key Engineering Challenges
 
-Python
+### 1️⃣ Region Quota Limitations
 
-"kafka.sasl.jaas.config": 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule...'
-3. Real-Time Visualization Latency
-Problem: Standard Power BI Import mode only refreshes 8 times a day.
+**Problem**  
+Azure Student subscription had **0-core VM quota** in the **UAE North** region, blocking cluster creation.
 
-Solution: Implemented DirectQuery combined with Delta Lake, allowing the dashboard to query the storage layer directly without data duplication, achieving near real-time updates.
+**Solution**  
+Migrated all infrastructure to **Southeast Asia**, where `Standard_DS3_v2` quotas were available for student tiers.
 
-📂 Project Structure
-Plaintext
+---
 
+### 2️⃣ Kafka / Spark Dependency Conflicts
+
+**Problem**  
+Databricks uses shaded Kafka libraries, causing `ClassNotFoundException` with standard Kafka login modules.
+
+**Solution**  
+Used the shaded Kafka namespace in Spark configuration:
+
+```python
+"kafka.sasl.jaas.config": 'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule ...'
+```
+
+---
+
+### 3️⃣ Real-Time Visualization Latency
+
+**Problem**  
+Power BI Import mode refreshes only **8 times/day**.
+
+**Solution**  
+Implemented **DirectQuery + Delta Lake**, allowing Power BI to query Databricks storage directly, enabling **near real-time dashboards**.
+
+---
+
+## 📂 Project Structure
+
+```text
 Azure-Sentiment-Pipeline/
 ├── producer.py                 # Local script to generate & stream data
 ├── spark_processor_cloud.py    # PySpark logic for Databricks
@@ -144,16 +200,26 @@ Azure-Sentiment-Pipeline/
 ├── requirements.txt            # Python dependencies
 ├── .gitignore                  # Git ignore rules
 └── README.md                   # Project documentation
-🔮 Future Improvements
-[ ] Dockerize Producer: Containerize the Python script for deployment on Azure Kubernetes Service (AKS).
+```
 
-[ ] Advanced AI: Replace TextBlob with a Transformer-based model (e.g., BERT) for higher accuracy.
+---
 
-[ ] Alerting System: Integrate Azure Logic Apps to send email alerts when negative sentiment spikes > 50%.
+## 🔮 Future Improvements
 
-👤 Author
-[Mohammed Showharwade Neshad]
+- [ ] **Dockerize Producer** – Containerize the producer and deploy on **Azure Kubernetes Service (AKS)**
+- [ ] **Advanced AI Models** – Replace TextBlob with Transformer-based models (BERT, RoBERTa)
+- [ ] **Alerting System** – Integrate **Azure Logic Apps** to trigger alerts when negative sentiment exceeds 50%
 
-[https://www.linkedin.com/in/mohammed-showharwade-n-082628101/]
+---
 
-[https://github.com/SwNishad]
+## 👤 Author
+
+**Mohammed Showharwade Neshad**  
+
+- 🔗 LinkedIn: https://www.linkedin.com/in/mohammed-showharwade-n-082628101/  
+- 💻 GitHub: https://github.com/SwNishad
+
+---
+
+⭐ *If this project helped you, consider giving it a star!*
+
